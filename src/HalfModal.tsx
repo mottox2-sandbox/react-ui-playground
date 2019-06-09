@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useSpring, animated } from 'react-spring'
 import { RemoveScroll } from 'react-remove-scroll'
 
@@ -10,7 +10,7 @@ const animationConfig = { mass: 0.8, tension: 185, friction: 24 }
 // const animationConfig = { tension: 190, friction: 20, mass: 0.4 }
 const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Function }) => {
   const [index, setIndex] = useState()
-  const [{ xy, ...other }, set] = useSpring(() => {
+  const [{ xy }, set] = useSpring(() => {
     return { xy: [0, 0], config: animationConfig }
   })
   const startVelocity = React.useRef<number | null>(null)
@@ -22,13 +22,19 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
   }
   const scrollableRef = useRef<HTMLDivElement | null>(null)
 
+  useEffect(() => {
+    console.log('isOpen: ', props.isOpen)
+
+    animateToPosition()
+  }, [props.isOpen])
+
   const animateToPosition = (immediate = false) => {
     // const { width, height } = bounds;
     const velocity = startVelocity.current
     startVelocity.current = null
 
     // const { x, y } = getDefaultPositions(isOpen, position, width, height);
-    console.log('velocity', velocity, other)
+    console.log('velocity', velocity, props.isOpen)
     set({
       xy: [0, props.isOpen ? 0 : 540],
       config: {
@@ -94,40 +100,42 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
   })
   return (
     <div className="App">
-      <RemoveScroll>
-        <div
-          {...bind}
+      <div
+        {...bind}
+        // aria-hidden={!props.isOpen}
+        css={css`
+          position: fixed;
+          bottom: 0;
+          left: 20px;
+          right: 20px;
+          pointer-events: ${props.isOpen ? 'auto' : 'none'};
+          /* min-height: 300px; */
+        `}
+      >
+        <animated.div
           css={css`
-            position: fixed;
-            bottom: 0;
-            left: 20px;
-            right: 20px;
-            /* min-height: 300px; */
+            background-color: white;
+            border-top-right-radius: 6px;
+            border-top-left-radius: 6px;
+            &:after {
+              content: '';
+              position: fixed;
+              height: 100vh;
+              left: 0;
+              right: 0;
+              top: 100%;
+              background: white;
+            }
           `}
+          style={{
+            // @ts-ignore
+            transform: xy.interpolate((x: number, y: number) => {
+              // console.log(y)
+              return `translate3d(0, ${y}px, 0)`
+            })
+          }}
         >
-          <animated.div
-            css={css`
-              background-color: white;
-              border-top-right-radius: 6px;
-              border-top-left-radius: 6px;
-              &:after {
-                content: '';
-                position: fixed;
-                height: 100vh;
-                left: 0;
-                right: 0;
-                top: 100%;
-                background: white;
-              }
-            `}
-            style={{
-              // @ts-ignore
-              transform: xy.interpolate((x: number, y: number) => {
-                // console.log(y)
-                return `translate3d(0, ${y}px, 0)`
-              })
-            }}
-          >
+          <RemoveScroll enabled={props.isOpen}>
             <div
               ref={scrollableRef}
               css={css`
@@ -168,9 +176,9 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
                 このデメリットを受け入れられれるのであれば、SSRよりSSGを利用するとメリットを享受できる。
               </p>
             </div>
-          </animated.div>
-        </div>
-      </RemoveScroll>
+          </RemoveScroll>
+        </animated.div>
+      </div>
     </div>
   )
 }

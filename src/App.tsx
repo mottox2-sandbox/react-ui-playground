@@ -46,11 +46,16 @@ const App: React.FC = () => {
           <div>page4</div>
         </GestureView>
       )}
-      <div>
+      <div
+        onClick={() => {
+          setOpen(true)
+        }}
+      >
         <h2>概要</h2>
         <p>
           SPAをリリースする際にVueやReactを単独でリリースしようとすると、表示までの速度や、ソーシャルシェア、SEOにおいて不利になりうる
         </p>
+        <button>OPEN</button>
         <p>
           Nuxt.js（のユニバーサルモード）を中心にSSRを利用する事例も増えてきたが、サーバー・キャッシュなどを考慮する必要があり面倒
         </p>
