@@ -6,6 +6,24 @@ import { RemoveScroll } from 'react-remove-scroll'
 import { useGestureResponder, StateType, Callbacks, ResponderEvent } from 'react-gesture-responder'
 import { jsx, css, Global } from '@emotion/core'
 
+type Direction = 'horizontal' | 'vertical' | null
+
+const getDirection = (initial: [number, number], xy: [number, number]) => {
+  const xDiff = Math.abs(initial[0] - xy[0])
+  const yDiff = Math.abs(initial[1] - xy[1])
+
+  // just a regular click
+  if (xDiff === yDiff) {
+    return null
+  }
+
+  if (xDiff > yDiff) {
+    return 'horizontal'
+  }
+
+  return 'vertical'
+}
+
 const animationConfig = { mass: 0.8, tension: 185, friction: 24 }
 // const animationConfig = { tension: 190, friction: 20, mass: 0.4 }
 const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Function }) => {
@@ -15,16 +33,14 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
   })
   const startVelocity = React.useRef<number | null>(null)
   const [isScrollLocking, setScrollLocking] = useState(false)
+  const initialDirection = React.useRef<Direction>(null)
 
   const shouldCloseOnRelease = (state: StateType) => {
-    console.log(state.delta[1])
     return (state.velocity > 0.2 && state.direction[0] > 0) || state.delta[1] > 100
   }
   const scrollableRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    console.log('isOpen: ', props.isOpen)
-
     animateToPosition()
   }, [props.isOpen])
 
@@ -49,7 +65,7 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
     const close = shouldCloseOnRelease(state)
     console.log('should close')
 
-    if (close) {
+    if (close && initialDirection && initialDirection.current === 'vertical') {
       console.log('close')
       props.onRequestClose()
     }
@@ -59,37 +75,62 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
 
   const { bind } = useGestureResponder({
     onStartShouldSet: (state: StateType) => {
-      if (scrollableRef && scrollableRef.current) {
-        if (state.direction[1]) {
+      initialDirection.current = null
+      return false
+      // if (scrollableRef && scrollableRef.current) {
+      //   if (state.direction[1]) {
+      //     if (scrollableRef.current.scrollTop < 0) {
+      //       scrollableRef.current.scrollTop = 0
+      //     }
+      //     if (scrollableRef.current.scrollTop < 1 && state.direction[1] > 0) {
+      //       // setScrollLocking(true)
+      //       return true
+      //     }
+      //   }
+      // }
+      // return false
+    },
+    onMoveShouldSet: (state: StateType) => {
+      const { initial, xy } = state
+      const gestureDirection: Direction = getDirection(initial, xy)
+      // console.log(gestureDirection)
+      initialDirection.current = gestureDirection
+      if (!gestureDirection) {
+        return false
+      }
+
+      if (gestureDirection === 'vertical') {
+        if (scrollableRef && scrollableRef.current) {
           if (scrollableRef.current.scrollTop < 0) {
             scrollableRef.current.scrollTop = 0
           }
-          if (scrollableRef.current.scrollTop < 1 && state.direction[1] > 0) {
-            // setScrollLocking(true)
-            return true
-          }
+          // console.log(state.initialDirection, state.direction)
+          return (
+            scrollableRef.current.scrollTop < 1 &&
+            state.initialDirection[1] > 0 &&
+            state.initialDirection[1] == state.direction[1]
+          )
         }
-      }
-      return false
-    },
-    onMoveShouldSet: (state: StateType) => {
-      // console.log(scrollableRef, state)
-      if (scrollableRef && scrollableRef.current) {
-        if (scrollableRef.current.scrollTop < 0) {
-          scrollableRef.current.scrollTop = 0
-        }
-        // console.log(state.initialDirection, state.direction)
-        return (
-          scrollableRef.current.scrollTop < 1 &&
-          state.initialDirection[1] > 0 &&
-          state.initialDirection[1] == state.direction[1]
-        )
+      } else if (gestureDirection === 'horizontal') {
+        return true
       }
       return false
     },
     onMove: ({ delta, direction }) => {
+      const gestureDirection = initialDirection.current
+      if (!gestureDirection) {
+        return
+      }
       const [x, y] = delta
-      set({ xy: [x, Math.max(y, 0)], config: animationConfig, immediate: true })
+
+      set({
+        xy: [
+          gestureDirection === 'horizontal' ? x : 0,
+          gestureDirection === 'vertical' ? Math.max(y, 0) : 0
+        ],
+        config: animationConfig,
+        immediate: true
+      })
     },
     onTerminate: onEnd,
     onRelease: (state: StateType) => {
@@ -131,7 +172,7 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
             // @ts-ignore
             transform: xy.interpolate((x: number, y: number) => {
               // console.log(y)
-              return `translate3d(0, ${y}px, 0)`
+              return `translate3d(${x}px, ${y}px, 0)`
             })
           }}
         >
