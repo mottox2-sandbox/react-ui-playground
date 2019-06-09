@@ -12,6 +12,7 @@ import HalfModal from './HalfModal'
 const animationConfig = { mass: 0.8, tension: 185, friction: 24 }
 const App: React.FC = () => {
   const [index, setIndex] = useState()
+  const [isOpen, setOpen] = useState(true)
 
   return (
     <div className="App">
@@ -23,7 +24,7 @@ const App: React.FC = () => {
           }
         `}
       />
-      <HalfModal />
+      <HalfModal isOpen={isOpen} onRequestClose={() => setOpen(false)} />
       {false && (
         <GestureView value={index} onRequestChange={i => setIndex(i)} enableMouse={true}>
           <header className="App-header">

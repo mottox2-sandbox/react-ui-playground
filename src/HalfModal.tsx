@@ -3,7 +3,6 @@ import React, { useState, useCallback, useRef } from 'react'
 import { useSpring, animated } from 'react-spring'
 import { RemoveScroll } from 'react-remove-scroll'
 
-import GestureView from 'react-gesture-view'
 import { useGestureResponder, StateType, Callbacks, ResponderEvent } from 'react-gesture-responder'
 import { jsx, css, Global } from '@emotion/core'
 
@@ -18,7 +17,8 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
   const [isScrollLocking, setScrollLocking] = useState(false)
 
   const shouldCloseOnRelease = (state: StateType) => {
-    return false
+    console.log(state.delta[1])
+    return (state.velocity > 0.2 && state.direction[0] > 0) || state.delta[1] > 100
   }
   const scrollableRef = useRef<HTMLDivElement | null>(null)
 
@@ -30,7 +30,7 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
     // const { x, y } = getDefaultPositions(isOpen, position, width, height);
     console.log('velocity', velocity, other)
     set({
-      xy: [0, 0],
+      xy: [0, props.isOpen ? 0 : 540],
       config: {
         ...animationConfig,
         velocity: velocity || 0
@@ -45,6 +45,7 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
 
     if (close) {
       console.log('close')
+      props.onRequestClose()
     }
 
     animateToPosition()
@@ -66,12 +67,12 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
       return false
     },
     onMoveShouldSet: (state: StateType) => {
-      console.log(scrollableRef, state)
+      // console.log(scrollableRef, state)
       if (scrollableRef && scrollableRef.current) {
         if (scrollableRef.current.scrollTop < 0) {
           scrollableRef.current.scrollTop = 0
         }
-        console.log(state.initialDirection, state.direction)
+        // console.log(state.initialDirection, state.direction)
         return (
           scrollableRef.current.scrollTop < 1 &&
           state.initialDirection[1] > 0 &&
