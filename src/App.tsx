@@ -12,7 +12,7 @@ import HalfModal from './HalfModal'
 const animationConfig = { mass: 0.8, tension: 185, friction: 24 }
 const App: React.FC = () => {
   const [index, setIndex] = useState()
-  const [isOpen, setOpen] = useState(true)
+  const [isOpen, setOpen] = useState(false)
 
   return (
     <div className="App">
@@ -24,28 +24,29 @@ const App: React.FC = () => {
           }
         `}
       />
-      <HalfModal isOpen={isOpen} onRequestClose={() => setOpen(false)} />
-      {false && (
+      {true && (
         <GestureView value={index} onRequestChange={i => setIndex(i)} enableMouse={true}>
           <header className="App-header">
             <img src={logo} className="App-logo" alt="logo" />
             <p>
               Edit <code>src/App.tsx</code> and save to reload.
             </p>
-            <a
-              className="App-link"
-              href="https://reactjs.org"
-              target="_blank"
-              rel="noopener noreferrer"
+            <div
+              onClick={() => setOpen(true)}
+              // className="App-link"
+              // href="https://reactjs.org"
+              // target="_blank"
+              // rel="noopener noreferrer"
             >
               Learn React
-            </a>
+            </div>
           </header>
           <div>page2</div>
           <div>page3</div>
           <div>page4</div>
         </GestureView>
       )}
+      <HalfModal isOpen={isOpen} onRequestClose={() => setOpen(false)} />
       <div
         onClick={() => {
           setOpen(true)
