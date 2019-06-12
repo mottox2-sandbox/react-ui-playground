@@ -34,15 +34,14 @@ const getDirection = (initial: [number, number], xy: [number, number]) => {
 }
 
 const paneWidth = window.innerWidth - 40 + 12
+const paneHeight = 540
 const animationConfig = { mass: 0.8, tension: 185, friction: 24 }
-// const animationConfig = { tension: 190, friction: 20, mass: 0.4 }
 const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Function }) => {
   const [index, setIndex] = useState(0)
   const [{ xy }, set] = useSpring(() => {
-    return { xy: [0, 0], config: animationConfig }
+    return { xy: [0, paneHeight], config: animationConfig }
   })
   const startVelocity = React.useRef<number | null>(null)
-  const [isScrollLocking, setScrollLocking] = useState(false)
   const initialDirection = React.useRef<Direction>(null)
 
   const shouldCloseOnRelease = (state: StateType) => {
@@ -75,7 +74,7 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
     console.log('velocity', velocity, props.isOpen)
     console.log('index:', nextIndex || index)
     set({
-      xy: [-(nextIndex || index) * paneWidth, props.isOpen ? 0 : 540],
+      xy: [-(nextIndex || index) * paneWidth, props.isOpen ? 0 : paneHeight],
       config: {
         ...animationConfig,
         velocity: velocity || 0
@@ -103,18 +102,6 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
     onStartShouldSet: (state: StateType) => {
       initialDirection.current = null
       return false
-      // if (scrollableRef && scrollableRef.current) {
-      //   if (state.direction[1]) {
-      //     if (scrollableRef.current.scrollTop < 0) {
-      //       scrollableRef.current.scrollTop = 0
-      //     }
-      //     if (scrollableRef.current.scrollTop < 1 && state.direction[1] > 0) {
-      //       // setScrollLocking(true)
-      //       return true
-      //     }
-      //   }
-      // }
-      // return false
     },
     onMoveShouldSet: (state: StateType) => {
       const { initial, xy } = state
@@ -162,7 +149,7 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
     onTerminate: onEnd,
     onRelease: (state: StateType) => {
       startVelocity.current = state.velocity
-      setScrollLocking(false)
+      // setScrollLocking(false)
       onEnd(state)
     }
   })
@@ -212,7 +199,7 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
                 ref={scrollableRef}
                 css={css`
                   height: 500px;
-                  overflow-y: ${isScrollLocking ? 'hidden' : 'auto'};
+                  overflow-y: auto;
                   padding: 20px;
                   -webkit-overflow-scrolling: touch;
                   /* -webkit-overflow-scrolling: auto; */
