@@ -15,6 +15,7 @@ const pane = css`
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   margin-right: 12px;
+  height: 540px;
 `
 
 const getDirection = (initial: [number, number], xy: [number, number]) => {
@@ -36,7 +37,7 @@ const getDirection = (initial: [number, number], xy: [number, number]) => {
 const paneWidth = window.innerWidth - 40 + 12
 const paneHeight = 540
 const animationConfig = { mass: 0.8, tension: 185, friction: 24 }
-const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Function }) => {
+const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Function, pages: JSX.Element[] }) => {
   const [index, setIndex] = useState(0)
   const [{ xy }, set] = useSpring(() => {
     return { xy: [0, paneHeight], config: animationConfig }
@@ -155,6 +156,7 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
   })
   return (
     <div className="App">
+      <div ref={scrollableRef} />
       <div
         {...bind}
         // aria-hidden={!props.isOpen}
@@ -188,57 +190,18 @@ const HalfModal: React.FC<any> = (props: { isOpen: boolean; onRequestClose: Func
           style={{
             // @ts-ignore
             transform: xy.interpolate((x: number, y: number) => {
-              // console.log(y)
               return `translate3d(${x}px, ${y}px, 0)`
             })
           }}
         >
-          <div css={pane}>
-            <RemoveScroll enabled={props.isOpen}>
-              <div
-                ref={scrollableRef}
-                css={css`
-                  height: 500px;
-                  overflow-y: auto;
-                  padding: 20px;
-                  -webkit-overflow-scrolling: touch;
-                  /* -webkit-overflow-scrolling: auto; */
-                  overflow-scrolling: touch;
-                  p {
-                    line-height: 1.6;
-                  }
-                `}
-              >
-                <h2>概要</h2>
-                <p>
-                  SPAをリリースする際にVueやReactを単独でリリースしようとすると、表示までの速度や、ソーシャルシェア、SEOにおいて不利になりうる
-                </p>
-                <p>
-                  Nuxt.js（のユニバーサルモード）を中心にSSRを利用する事例も増えてきたが、サーバー・キャッシュなどを考慮する必要があり面倒
-                </p>
-                <p>
-                  SSG（静的サイトジェネレーター）でビルド時にSSRを行うPrerenderというアプローチを利用するとサーバーやキャッシュの考慮が不要になる
-                </p>
-                <p>
-                  ただし、Prerenderはコンテンツの更新ごとにビルドの必要があり、反映までのタイムラグが存在する。
-                </p>
-                <p>
-                  このデメリットを受け入れられれるのであれば、SSRよりSSGを利用するとメリットを享受できる。
-                </p>
-                <p>
-                  SSG（静的サイトジェネレーター）でビルド時にSSRを行うPrerenderというアプローチを利用するとサーバーやキャッシュの考慮が不要になる
-                </p>
-                <p>
-                  ただし、Prerenderはコンテンツの更新ごとにビルドの必要があり、反映までのタイムラグが存在する。
-                </p>
-                <p>
-                  このデメリットを受け入れられれるのであれば、SSRよりSSGを利用するとメリットを享受できる。
-                </p>
-              </div>
-            </RemoveScroll>
-          </div>
-          <div css={pane}>Pane2</div>
-          <div css={pane}>Pane3</div>
+          {props.pages.map((page, currentIndex) => {
+            if (Math.abs(currentIndex - index) < 2) {
+              return page
+            } else {
+              return <div css={pane} />
+            }
+          })}
+
         </animated.div>
       </div>
     </div>
